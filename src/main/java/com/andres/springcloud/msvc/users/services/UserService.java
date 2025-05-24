@@ -56,6 +56,7 @@ public class UserService implements IUserService{
         user.setKeycloakId(userRequest.getKeycloakId());
         user.setEmail(userRequest.getEmail());
         user.setRoles(getRoles(userRequest));
+        user.setUsername(userRequest.getUsername());
         user.setEnabled(true);
         return userRepository.save(user);
     }
