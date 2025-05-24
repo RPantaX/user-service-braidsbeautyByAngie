@@ -1,5 +1,6 @@
 package com.andres.springcloud.msvc.users.services;
 
+import com.andres.springcloud.msvc.users.dto.UserRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -42,10 +43,19 @@ public class UserService implements IUserService{
     }
 
     @Transactional
-    public User save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        user.setRoles(getRoles(user));
+    public User save(UserRequest userRequest) {
+        //validate if user exists by username or email
+        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
+            throw new RuntimeException("User already exists");
+        }
+        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+        User user = new User();
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setKeycloakId(userRequest.getKeycloakId());
+        user.setEmail(userRequest.getEmail());
+        user.setRoles(getRoles(userRequest));
         user.setEnabled(true);
         return userRepository.save(user);
     }
@@ -64,19 +74,33 @@ public class UserService implements IUserService{
             } else {
                 userDb.setEnabled(user.isEnabled());
             }
-            userDb.setRoles(getRoles(user));
+            userDb.setRoles(getRolesForUpdated(user));
             
             return Optional.of(userRepository.save(userDb));
         }).orElseGet(() -> Optional.empty());
 
     }
-
+    @Override
+    public Boolean existByUserId(String keycloakId) {
+        return userRepository.existsByKeycloakId(keycloakId);
+    }
     @Transactional
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
 
-    private List<Role> getRoles(User user) {
+    private List<Role> getRoles(UserRequest user) {
+        List<Role> roles = new ArrayList<>();
+        Optional<Role> roleOptional = roleRepository.findByName("ROLE_USER");
+        roleOptional.ifPresent(roles::add);
+
+        if (user.isAdmin()) {
+            Optional<Role> adminRoleOptional = roleRepository.findByName("ROLE_ADMIN");
+            adminRoleOptional.ifPresent(roles::add);
+        }
+        return roles;
+    }
+    private List<Role> getRolesForUpdated(User user) {
         List<Role> roles = new ArrayList<>();
         Optional<Role> roleOptional = roleRepository.findByName("ROLE_USER");
         roleOptional.ifPresent(roles::add);

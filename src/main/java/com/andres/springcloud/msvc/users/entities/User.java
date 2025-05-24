@@ -25,7 +25,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
-
+    @Column(name = "keycloak_id")
+    private String keycloakId;
     @NotBlank
     @Column(unique = true)
     private String username;
@@ -50,6 +51,20 @@ public class User {
     @NotBlank
     @Column(unique = true)
     private String email;
+
+    public User() {
+    }
+
+    public User(Long id, String keycloakId, String password, String username, Boolean enabled, boolean admin, List<Role> roles, String email) {
+        this.id = id;
+        this.keycloakId = keycloakId;
+        this.password = password;
+        this.username = username;
+        this.enabled = enabled;
+        this.admin = admin;
+        this.roles = roles;
+        this.email = email;
+    }
 
     public Long getId() {
         return id;
@@ -106,5 +121,10 @@ public class User {
     public void setAdmin(boolean admin) {
         this.admin = admin;
     }
-    
+    public String getKeycloakId() {
+        return keycloakId;
+    }
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
+    }
 }
