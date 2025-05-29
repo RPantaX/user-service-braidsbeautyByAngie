@@ -1,6 +1,7 @@
 package com.andres.springcloud.msvc.users.controllers;
 
 import com.andres.springcloud.msvc.users.dto.AuthRequest;
+import com.andres.springcloud.msvc.users.dto.TokenResponse;
 import com.andres.springcloud.msvc.users.dto.TokenValidationResponse;
 import com.andres.springcloud.msvc.users.services.AuthService;
 import com.andres.springcloud.msvc.users.services.JwtService;
@@ -27,14 +28,15 @@ public class AuthController {
     private JwtService jwtService;
 
     @PostMapping("/token")
-    public ResponseEntity<String> getToken(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<TokenResponse> getToken(@RequestBody AuthRequest authRequest) {
         Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
         );
 
         if (authenticate.isAuthenticated()) {
             String token = service.generateToken(authRequest.getUsername());
-            return ResponseEntity.ok(token);
+            TokenResponse tokenResponse = TokenResponse.builder().token(token).build();
+            return ResponseEntity.ok(tokenResponse);
         } else {
             throw new RuntimeException("Invalid access");
         }
