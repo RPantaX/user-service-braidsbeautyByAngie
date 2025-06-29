@@ -11,6 +11,11 @@ node {
                 credentialsId: 'user-service',
                 branch: 'main'
          }
+         stage('Build app') {
+            sh 'chmod +x mvnw || true'
+            sh './mvnw clean package -DskipTests'
+        }
+
           stage('Build docker') {
 			dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
           }
