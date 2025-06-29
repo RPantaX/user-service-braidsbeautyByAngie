@@ -1,55 +1,30 @@
-pipeline {
-	agent any
+node {
+	def WORKSPACE = "/var/lib/jenkins/workspace/user-service"
+    def dockerImageTag = "user-service${env.BUILD_NUMBER}"
 
-    environment {
-		DOCKER_HUB_REPO = 'rpantax/user-service'
-        DOCKER_IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT.take(7)}"
+    try{
+		//          notifyBuild('STARTED')
+         stage('Clone Repo') {
+			// for display purposes
+            // Get some code from a GitHub repository
+            git url: 'https://github.com/RPantaX/user-service-braidsbeautyByAngie.git',
+                credentialsId: 'user-service',
+                branch: 'main'
+         }
+          stage('Build docker') {
+			dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
+          }
 
-        // GitHub Authentication - FIXED
-        GITHUB_USERNAME = 'RPantaX'
-    }
-
-    tools {
-		maven 'Maven-4.0.0'
-        jdk 'Java-17'  // FIXED: Cambiar a Java-21 que es lo que tienes instalado
-    }
-
-    stages {
-		stage('Checkout') {
-			steps {
-				echo "Checking out code from ${env.BRANCH_NAME} branch"
-                checkout scm
-                script {
-					env.GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-                    env.GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
-                }
-            }
-        }
-		stage('Clone Repo') {
-			steps {
-				// for display purposes
-				// Get some code from a GitHub repository
-				git url: 'https://github.com/RPantaX/user-service-braidsbeautyByAngie.git',
-					credentialsId: 'github-user',
-					branch: 'main'
-
-				}
-        }
-        stage('Build docker') {
-			steps {
-				dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
-			}
-        }
-
-        stage('Deploy docker'){
-			steps {
-				echo "Docker Image Tag Name: ${DOCKER_IMAGE_TAG}"
-                  sh "docker stop user-service || true && docker rm springboot-deploy || true"
-                  sh "docker run --name user-service -d -p 8082:8082 user-service:${env.BUILD_NUMBER}"
-			}
-        }
-
-
+          stage('Deploy docker'){
+			echo "Docker Image Tag Name: ${dockerImageTag}"
+                  sh "docker stop user-service || true && docker rm user-service || true"
+                  sh "docker run --name springboot-deploy -d -p 8081:8081 springboot-deploy:${env.BUILD_NUMBER}"
+          }
+    }catch(e){
+		//         currentBuild.result = "FAILED"
+        throw e
+    }finally{
+		//         notifyBuild(currentBuild.result)
     }
 }
 def notifyBuild(String buildStatus = 'STARTED'){
