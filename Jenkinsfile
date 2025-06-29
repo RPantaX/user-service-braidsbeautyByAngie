@@ -36,13 +36,17 @@ pipeline {
 				}
         }
         stage('Build docker') {
-			dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
+			steps {
+				dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
+			}
         }
 
         stage('Deploy docker'){
-			echo "Docker Image Tag Name: ${DOCKER_IMAGE_TAG}"
+			steps {
+				echo "Docker Image Tag Name: ${DOCKER_IMAGE_TAG}"
                   sh "docker stop user-service || true && docker rm springboot-deploy || true"
                   sh "docker run --name user-service -d -p 8082:8082 user-service:${env.BUILD_NUMBER}"
+			}
         }
 
 
