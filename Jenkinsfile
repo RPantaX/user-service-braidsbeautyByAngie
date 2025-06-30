@@ -12,9 +12,12 @@ pipeline {
         stage('Clone Repo') {
             // for display purposes
             // Get some code from a GitHub repository
-            git url: 'https://github.com/RPantaX/user-service-braidsbeautyByAngie.git',
+            steps {
+                git url: 'https://github.com/RPantaX/user-service-braidsbeautyByAngie.git',
                 credentialsId: 'user-service',
                 branch: 'main'
+            }
+
         }
         stage('Maven Build') {
             steps {
