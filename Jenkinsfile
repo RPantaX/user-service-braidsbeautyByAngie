@@ -12,8 +12,7 @@ node {
                 branch: 'main'
          }
          stage('Build app') {
-            sh 'chmod +x mvnw || true'
-            sh './mvnw clean package -DskipTests'
+            sh 'mvn clean package'
         }
 
           stage('Build docker') {
