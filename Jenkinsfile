@@ -2,7 +2,8 @@ pipeline {
     agent any
     environment {
         WORKSPACE = "/var/lib/jenkins/workspace/user-service"
-        dockerImageTag = "user-service${env.BUILD_NUMBER}"
+        DOCKER_HUB_REPO = 'rpantax/user-service'
+        DOCKER_IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT.take(7)}"
     }
     tools{
         maven "maven4.0.0"
@@ -26,16 +27,25 @@ pipeline {
         }
         stage('Build docker') {
             steps {
-                dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
+                echo 'Building Docker image...'
+                script {
+                    def dockerImage = docker.build("${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}")
+                    env.DOCKER_IMAGE_ID = dockerImage.id
+
+                    if (env.BRANCH_NAME == 'main') {
+                        dockerImage.tag('latest')
+                    }
+                    dockerImage.tag("${env.BRANCH_NAME}-latest")
+                }
             }
 
         }
 
          stage('Deploy docker'){
             steps {
-                echo "Docker Image Tag Name: ${dockerImageTag}"
+                echo "Docker Image Tag Name: ${DOCKER_IMAGE_TAG}"
                   sh "docker stop user-service || true && docker rm user-service || true"
-                  sh "docker run --name springboot-deploy -d -p 8081:8081 springboot-deploy:${env.BUILD_NUMBER}"
+                  sh "docker run --name user-service -d -p 8081:8081 springboot-deploy:${env.BUILD_NUMBER}"
             }
 
         }
