@@ -22,7 +22,7 @@ pipeline {
         }
         stage('Maven Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean package -DskipTests -B'
             }
         }
         stage('Build docker') {
