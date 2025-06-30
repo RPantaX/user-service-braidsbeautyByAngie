@@ -5,7 +5,7 @@ pipeline {
         dockerImageTag = "user-service${env.BUILD_NUMBER}"
     }
     tools{
-        maven "Maven-3.9.9"
+        maven "maven4.0.0"
     }
 
     stages {
@@ -25,13 +25,19 @@ pipeline {
             }
         }
         stage('Build docker') {
-            dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
+            steps {
+                dockerImage = docker.build("user-service:${env.BUILD_NUMBER}")
+            }
+
         }
 
          stage('Deploy docker'){
-            echo "Docker Image Tag Name: ${dockerImageTag}"
+            steps {
+                echo "Docker Image Tag Name: ${dockerImageTag}"
                   sh "docker stop user-service || true && docker rm user-service || true"
                   sh "docker run --name springboot-deploy -d -p 8081:8081 springboot-deploy:${env.BUILD_NUMBER}"
+            }
+
         }
     }
 }
