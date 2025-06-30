@@ -3,6 +3,9 @@ node {
     def dockerImageTag = "user-service${env.BUILD_NUMBER}"
 
     try{
+        tools{
+            maven "Maven-3.9.9"
+        }
 		//          notifyBuild('STARTED')
          stage('Clone Repo') {
 			// for display purposes
