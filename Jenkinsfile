@@ -14,6 +14,7 @@ pipeline {
             // for display purposes
             // Get some code from a GitHub repository
             steps {
+                echo "Checking out code from ${env.BRANCH_NAME} branch"
                 git url: 'https://github.com/RPantaX/user-service-braidsbeautyByAngie.git',
                 credentialsId: 'github-token',
                 branch: 'main'
@@ -25,7 +26,7 @@ pipeline {
                 sh 'mvn clean package -DskipTests -B'
             }
         }
-        stage('Build docker') {
+        stage('Docker Build') {
             steps {
                 echo 'Building Docker image...'
                 script {
@@ -47,28 +48,30 @@ pipeline {
                 sh "docker build -t ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG} ."
             }
         }
-
-        stage('Push to Docker Hub') {
-            steps {
-                echo "Pushing image to Docker Hub: ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'jenkins-cicd-token2', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh """
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}
-                        """
-                    }
+        stage('Docker Push') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
                 }
             }
-        }
-
-        stage('Deploy Docker Image') {
             steps {
-                echo "Running Docker Image: ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
-                sh "docker stop user-service || true && docker rm user-service || true"
-                sh "docker run --name user-service -d -p 8081:8081 ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
+                echo 'Pushing Docker image to Docker Hub...'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'jenkins-cicd-token2') {
+                        def image = docker.image("${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}")
+                        image.push()
+                        image.push("${env.BRANCH_NAME}-latest")
+
+                        if (env.BRANCH_NAME == 'main') {
+                            image.push('latest')
+                        }
+                    }
+                }
+                echo "Docker image pushed successfully: ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
             }
         }
+
 
     }
 }
