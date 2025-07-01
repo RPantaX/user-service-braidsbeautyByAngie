@@ -41,9 +41,30 @@ pipeline {
 
         }
 
-         stage('Deploy docker'){
+         stage('Build Docker Image') {
             steps {
-                echo "Docker Image Tag Name: ${DOCKER_IMAGE_TAG}"
+                echo 'Building Docker image...'
+                sh "docker build -t ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG} ."
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                echo "Pushing image to Docker Hub: ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-cicd-token2', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh """
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Docker Image') {
+            steps {
+                echo "Running Docker Image: ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
                 sh "docker stop user-service || true && docker rm user-service || true"
                 sh "docker run --name user-service -d -p 8081:8081 ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
             }
