@@ -15,7 +15,7 @@ pipeline {
             // Get some code from a GitHub repository
             steps {
                 git url: 'https://github.com/RPantaX/user-service-braidsbeautyByAngie.git',
-                credentialsId: 'user-service',
+                credentialsId: 'github-token',
                 branch: 'main'
             }
 
@@ -44,10 +44,10 @@ pipeline {
          stage('Deploy docker'){
             steps {
                 echo "Docker Image Tag Name: ${DOCKER_IMAGE_TAG}"
-                  sh "docker stop user-service || true && docker rm user-service || true"
-                  sh "docker run --name user-service -d -p 8081:8081 springboot-deploy:${env.BUILD_NUMBER}"
+                sh "docker stop user-service || true && docker rm user-service || true"
+                sh "docker run --name user-service -d -p 8081:8081 ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
             }
-
         }
+
     }
 }
