@@ -7,7 +7,7 @@ pipeline {
         CURRENT_BRANCH = "${env.BRANCH_NAME ?: 'main'}"
     }
     tools{
-        maven "maven4.0.0"
+        maven "Maven-3.9.10"
     }
 
     stages {
@@ -74,25 +74,22 @@ pipeline {
             steps {
                 echo 'Pushing Docker image to Docker Hub...'
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'jenkins-cicd-token2') {
-                        def image = docker.image("${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}")
-
-                        // Push imagen con tag específico
-                        image.push()
-
-                        // Push imagen con tag de rama
-                        image.push("${env.CURRENT_BRANCH}-latest")
-
-                        // Push latest solo si es rama main
-                        if (env.CURRENT_BRANCH == 'main') {
-                            image.push('latest')
-                        }
+                            docker.withRegistry('https://index.docker.io/v1/', 'jenkins-cicd-token2') {
+                                docker.image("${DOCKER_HUB_REPO}:latest").push()
                     }
                 }
-                echo "Docker image pushed successfully: ${DOCKER_HUB_REPO}:${DOCKER_IMAGE_TAG}"
+                echo "Docker image pushed successfully: ${DOCKER_HUB_REPO}:latest"
+                    }
+                }
+        stage('k8s deployment') {
+            steps {
+                script {
+                    // Reemplaza la imagen en el archivo de despliegue con el tag real generado
+                    sh "sed -i 's|rpantax/user-service:latest|rpantax/user-service:${DOCKER_IMAGE_TAG}|' k8s-deploy.yml"
+                }
+                sh 'kubectl apply -f k8s-deploy.yml'
             }
         }
-
         stage('Cleanup') {
             steps {
                 echo 'Cleaning up local Docker images...'
