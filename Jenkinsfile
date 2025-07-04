@@ -79,8 +79,8 @@ pipeline {
                     }
                 }
                 echo "Docker image pushed successfully: ${DOCKER_HUB_REPO}:latest"
-                    }
-                }
+            }
+        }
         stage('k8s deployment') {
             steps {
                 script {
