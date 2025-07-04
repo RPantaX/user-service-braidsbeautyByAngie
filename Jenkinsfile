@@ -83,10 +83,6 @@ pipeline {
         }
         stage('k8s deployment') {
             steps {
-                script {
-                    // Reemplaza la imagen en el archivo de despliegue con el tag real generado
-                    sh "sed -i 's|rpantax/user-service:latest|rpantax/user-service:${DOCKER_IMAGE_TAG}|' k8s-deploy.yml"
-                }
                 sh 'kubectl apply -f k8s-deploy.yml'
             }
         }
