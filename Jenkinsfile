@@ -1,7 +1,6 @@
 pipeline {
     agent any
     environment {
-        WORKSPACE = "/var/lib/jenkins/workspace/user-service"
         DOCKER_HUB_REPO = 'rpantax/user-service'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT.take(7)}"
         // Definir rama por defecto si no está disponible
