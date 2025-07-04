@@ -5,7 +5,10 @@ metadata:
 spec:
   replicas: 2
   strategy:
-    type: Recreate
+    type: RollingUpdate  # Mejor que Recreate para actualizaciones sin downtime
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
       app: userservice
@@ -21,6 +24,27 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          # Agregar health checks
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          # Recursos recomendados
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -33,3 +57,4 @@ spec:
   ports:
     - port: 80
       targetPort: 8080
+      protocol: TCP
