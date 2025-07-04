@@ -6,4 +6,4 @@ COPY target/msvc-users-0.0.1-SNAPSHOT.jar user-service.jar
 ENV PORT 8080
 EXPOSE $PORT
 
-ENTRYPOINT ["java","-jar","-Xmx1024M","-Dserver.port=${PORT}","app.jar"]
+ENTRYPOINT ["java","-jar","-Xmx1024M","-Dserver.port=${PORT}","user-service.jar"]
