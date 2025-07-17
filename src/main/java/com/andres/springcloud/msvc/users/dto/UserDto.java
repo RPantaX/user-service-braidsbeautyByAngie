@@ -1,24 +1,31 @@
 package com.andres.springcloud.msvc.users.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.util.List;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserRequest {
+public class UserDto {
+    private Long id;
     private String keycloakId;
+
     @NotBlank
     private String username;
-    private String document;
+
     @NotBlank
     private String password;
-    @NotBlank
+
     private Boolean enabled;
+    private boolean admin;
+
+    @Email
     @NotBlank
     private String email;
-    @NotBlank
-    private boolean admin;
+
+    private List<Long> roleIds;
+    private List<RoleDto> roles;
 }

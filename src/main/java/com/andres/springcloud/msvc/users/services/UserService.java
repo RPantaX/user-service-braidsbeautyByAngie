@@ -1,6 +1,14 @@
 package com.andres.springcloud.msvc.users.services;
 
 import com.andres.springcloud.msvc.users.dto.UserRequest;
+import com.andres.springcloud.msvc.users.dto.constants.Constants;
+import com.andres.springcloud.msvc.users.dto.constants.UsersErrorEnum;
+import com.andres.springcloud.msvc.users.entities.Employee;
+import com.andres.springcloud.msvc.users.entities.Person;
+import com.andres.springcloud.msvc.users.repositories.EmployeeRepository;
+import com.andres.springcloud.msvc.users.repositories.PersonRepository;
+import com.braidsbeautybyangie.sagapatternspringboot.aggregates.aggregates.util.ValidateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class UserService implements IUserService{
 
     @Autowired
@@ -26,7 +35,10 @@ public class UserService implements IUserService{
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+    @Autowired
+    private PersonRepository personRepository;
+    @Autowired
+    private EmployeeRepository employeeRepository;
     @Transactional(readOnly = true)
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
@@ -58,7 +70,23 @@ public class UserService implements IUserService{
         user.setRoles(getRoles(userRequest));
         user.setUsername(userRequest.getUsername());
         user.setEnabled(true);
-        return userRepository.save(user);
+        user.setState(Constants.STATUS_ACTIVE);
+        user.setCreatedAt(Constants.getTimestamp());
+        user.setModifiedByUser(Constants.getUserInSession().isEmpty() ? "SYSTEM" : Constants.getUserInSession());
+        User userSaved = userRepository.save(user);
+        if(userRequest.getDocument() != null ){
+            Person person = personRepository.findByDocumentNumber(userRequest.getDocument()).orElse(null);
+            if (person ==null) {
+                ValidateUtil.requerido(null, UsersErrorEnum.PERSON_NOT_FOUND_ERPE00001);
+            }
+            Employee employee = employeeRepository.findByPersonId(person.getId()).orElse(null);
+            if(employee == null){
+                ValidateUtil.requerido(null, UsersErrorEnum.EMPLOYEE_NOT_FOUND_ERE00005);
+            }
+            employee.setUser(userSaved);
+            employeeRepository.save(employee);
+        }
+        return userSaved;
     }
 
     @Override

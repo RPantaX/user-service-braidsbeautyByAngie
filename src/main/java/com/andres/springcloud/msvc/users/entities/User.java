@@ -1,5 +1,6 @@
 package com.andres.springcloud.msvc.users.entities;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -65,6 +66,21 @@ public class User {
     public boolean isAdmin() {
         return admin;
     }
+
+    @Column(name = "state", nullable = false)
+    private Boolean state;
+
+    @Column(name = "modified_by_user", nullable = false, length = 15)
+    private String modifiedByUser;
+
+    @Column(name = "created_at", nullable = false)
+    private Timestamp createdAt;
+
+    @Column(name = "modified_at")
+    private Timestamp modifiedAt;
+
+    @Column(name = "deleted_at")
+    private Timestamp deletedAt;
 
 
 }
