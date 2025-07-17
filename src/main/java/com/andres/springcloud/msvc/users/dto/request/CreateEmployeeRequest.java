@@ -44,7 +44,7 @@ public class CreateEmployeeRequest {
     @NotBlank
     private String postalCode;
     @NotBlank
-    private String description;
+    private String addressDescription;
     @NotBlank
     private String country;
     @NotBlank

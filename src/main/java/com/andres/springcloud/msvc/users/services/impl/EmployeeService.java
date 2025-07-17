@@ -237,7 +237,7 @@ public class EmployeeService implements IEmployeeService {
                 .postalCode(createEmployeeRequest.getPostalCode().toUpperCase())
                 .street(createEmployeeRequest.getStreet().toUpperCase())
                 .state(createEmployeeRequest.getState().toUpperCase())
-                .description(createEmployeeRequest.getDescription().toUpperCase())
+                .description(createEmployeeRequest.getAddressDescription().toUpperCase())
                 .build();
 
         DocumentType documentType = documentTypeRepository.findById(createEmployeeRequest.getDocumentTypeId())
@@ -291,7 +291,7 @@ public class EmployeeService implements IEmployeeService {
         employeeInBD.getPerson().getAddress().setPostalCode(createEmployeeRequest.getPostalCode().toUpperCase());
         employeeInBD.getPerson().getAddress().setStreet(createEmployeeRequest.getStreet().toUpperCase());
         employeeInBD.getPerson().getAddress().setState(createEmployeeRequest.getState().toUpperCase());
-        employeeInBD.getPerson().getAddress().setDescription(createEmployeeRequest.getDescription().toUpperCase());
+        employeeInBD.getPerson().getAddress().setDescription(createEmployeeRequest.getAddressDescription().toUpperCase());
         employeeInBD.getPerson().setName(createEmployeeRequest.getName().toUpperCase());
         employeeInBD.getPerson().setLastName(createEmployeeRequest.getLastName().toUpperCase());
         employeeInBD.getPerson().setEmailAddress(createEmployeeRequest.getEmailAddress().toUpperCase());
