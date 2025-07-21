@@ -25,7 +25,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     private EntityManager entityManager;
 
     @Override
-    public Page<Employee> findAllActiveEmployeesWithRelations(Pageable pageable) {
+    public Page<Employee> findAllPageableEmployeesWithRelationsByState(Pageable pageable, boolean state) {
         log.info("Executing criteria query for active employees with relations");
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -44,7 +44,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
         Fetch<Employee, User> userFetch = employeeRoot.fetch("user", JoinType.LEFT);
 
         // Condición WHERE para empleados activos
-        Predicate activeCondition = cb.equal(employeeRoot.get("state"), true);
+        Predicate activeCondition = cb.equal(employeeRoot.get("state"), state);
         query.where(activeCondition);
 
         // Aplicar ordenamiento
@@ -78,7 +78,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     }
 
     @Override
-    public Page<Employee> findActiveEmployeesByTypeWithRelations(Pageable pageable, Long employeeTypeId) {
+    public Page<Employee> findActiveEmployeesByTypeWithRelations(Pageable pageable, Long employeeTypeId, boolean state) {
         log.info("Executing criteria query for active employees with type ID {} and relations", employeeTypeId);
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -100,7 +100,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
         List<Predicate> predicates = new ArrayList<>();
 
         // Empleados activos
-        predicates.add(cb.equal(employeeRoot.get("state"), true));
+        predicates.add(cb.equal(employeeRoot.get("state"), state));
 
         // Filtro por tipo de empleado
         if (employeeTypeId != null) {

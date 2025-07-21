@@ -23,9 +23,10 @@ public class EmployeeController {
     public ResponseEntity<ApiResponse> listEmployeePageableList(@RequestParam(value = "pageNo", defaultValue = Constants.NUM_PAG_BY_DEFECT, required = false) int pageNo,
                                                                 @RequestParam(value = "pageSize", defaultValue = Constants.SIZE_PAG_BY_DEFECT, required = false) int pageSize,
                                                                 @RequestParam(value = "sortBy", defaultValue = Constants.ORDER_BY_DEFECT_ALL, required = false) String sortBy,
-                                                                @RequestParam(value = "sortDir", defaultValue = Constants.ORDER_DIRECT_BY_DEFECT, required = false) String sortDir) {
+                                                                @RequestParam(value = "sortDir", defaultValue = Constants.ORDER_DIRECT_BY_DEFECT, required = false) String sortDir,
+                                                                @RequestParam(value = "state", defaultValue = "true", required = false) boolean state) {
         return ResponseEntity.ok(ApiResponse.ok("List of employees retrieved successfully",
-                employeeService.listEmployeePageable(pageNo, pageSize, sortBy, sortDir)));
+                employeeService.listEmployeePageable(pageNo, pageSize, sortBy, sortDir, state)));
     }
     @GetMapping("/list/pageable/by-typeId")
     public ResponseEntity<ApiResponse> listEmployeePageableByType(
@@ -33,9 +34,10 @@ public class EmployeeController {
             @RequestParam(value = "pageSize", defaultValue = Constants.SIZE_PAG_BY_DEFECT, required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = Constants.ORDER_BY_DEFECT_ALL, required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = Constants.ORDER_DIRECT_BY_DEFECT, required = false) String sortDir,
+            @RequestParam(value = "state", defaultValue = "true", required = false) boolean state,
             @RequestParam(value = "employeeTypeId", required = true) Long employeeTypeId) {
         return ResponseEntity.ok(ApiResponse.ok("List of employees by type retrieved successfully",
-                employeeService.listEmployeePageableByType(pageNo, pageSize, sortBy, sortDir, employeeTypeId)));
+                employeeService.listEmployeePageableByType(pageNo, pageSize, sortBy, sortDir, employeeTypeId, state)));
     }
 
     // NUEVO: Endpoint para filtrar por enum de tipo de empleado

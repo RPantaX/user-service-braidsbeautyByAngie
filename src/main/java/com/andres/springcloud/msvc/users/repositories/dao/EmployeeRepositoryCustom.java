@@ -8,9 +8,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface EmployeeRepositoryCustom {
-    Page<Employee> findAllActiveEmployeesWithRelations(Pageable pageable);
+    Page<Employee> findAllPageableEmployeesWithRelationsByState(Pageable pageable, boolean state);
     // Nuevo método para filtrar por tipo de empleado
-    Page<Employee> findActiveEmployeesByTypeWithRelations(Pageable pageable, Long employeeTypeId);
+    Page<Employee> findActiveEmployeesByTypeWithRelations(Pageable pageable, Long employeeTypeId, boolean state);
 
     // Método alternativo usando enum
     Page<Employee> findActiveEmployeesByTypeWithRelations(Pageable pageable, EmployeeTypeEnum employeeType);

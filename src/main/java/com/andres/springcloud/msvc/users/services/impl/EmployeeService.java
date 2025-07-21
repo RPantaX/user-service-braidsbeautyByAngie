@@ -92,23 +92,45 @@ public class EmployeeService implements IEmployeeService {
 
     @Override
     public boolean updateEmployee(Long employeeId, CreateEmployeeRequest request) {
-        log.info("Creating employee with request: {}", request);
+        log.info("Updating employee with ID: {} and request: {}", employeeId, request);
+        // 1. Obtener el empleado existente
         Employee employeeInBD = employeeRepository.findById(employeeId)
                 .orElse(null);
         if (employeeInBD == null) {
             log.error("Employee with ID {} not found", employeeId);
             ValidateUtil.requerido(null, UsersErrorEnum.EMPLOYEE_NOT_FOUND_ERE00005, "Employee not found with ID: " + employeeId);
         }
+        // 2. Guardar la URL de la imagen antigua ANTES de cualquier cambio
+        String oldImageUrl = employeeInBD.getEmployeeImage();
+        String newImageUrl = null;
+
         validateEmployeeDataUpdated(request, employeeInBD);
-        Employee employee = updateEmployeeInBD(request, employeeInBD);
-        Employee employeeSaved = employeeRepository.save(employee);
-        if (request.getEmployeeImage() != null && !request.getEmployeeImage().isEmpty()) {
-            String imageUrl = saveImageInS3(request.getEmployeeImage(), employeeSaved.getId());
-            employeeSaved.setEmployeeImage(imageUrl);
-            employeeRepository.save(employeeSaved);
-            log.info("Image saved for employee ID: {}", employeeSaved.getId());
+        // 3. Manejar la lógica de la imagen
+        boolean hasNewImage = request.getEmployeeImage() != null && !request.getEmployeeImage().isEmpty();
+        boolean shouldDeleteOldImage = request.isDeleteFile();
+        if (shouldDeleteOldImage) {
+            // Si el frontend pide explícitamente borrar la imagen
+            employeeInBD.setEmployeeImage(null);
+        } else if (hasNewImage) {
+            // Si se sube una nueva imagen para reemplazar la anterior
+            newImageUrl = saveImageInS3(request.getEmployeeImage(), employeeId);
+            employeeInBD.setEmployeeImage(newImageUrl);
         }
-        updateImageInS3(request.getEmployeeImage(), employeeSaved.getId(), employeeSaved, request.isDeleteFile());
+        // 4. Actualizar el resto de los datos del empleado
+        // Suponiendo que tienes un método que mapea el request a la entidad.
+        // Este método debería ser llamado aquí. Por ejemplo:
+        updateEmployeeInBD(request, employeeInBD); // Tu método existente para actualizar otros campos
+
+        // 5. Guardar el empleado en la base de datos UNA SOLA VEZ
+        employeeRepository.save(employeeInBD);
+        log.info("Employee with ID {} updated successfully in the database.", employeeId);
+
+        // 6. Borrar la imagen antigua de S3 DESPUÉS de confirmar el guardado en BD
+        if ((shouldDeleteOldImage || hasNewImage) && oldImageUrl != null && !oldImageUrl.isEmpty()) {
+            Constants.deleteOldImageFromS3(oldImageUrl, bucketUtil, bucketName);
+            log.info("Old image {} deleted from S3 for employee ID: {}", oldImageUrl, employeeId);
+        }
+
         return true;
     }
 
@@ -133,7 +155,7 @@ public class EmployeeService implements IEmployeeService {
     }
 
     @Override
-    public ResponseListPageableEmployee listEmployeePageable(int pageNumber, int pageSize, String orderBy, String sortDir) {
+    public ResponseListPageableEmployee listEmployeePageable(int pageNumber, int pageSize, String orderBy, String sortDir, boolean state) {
         log.info("Listing employees with parameters: pageNumber={}, pageSize={}, orderBy={}, sortDir={}",
                 pageNumber, pageSize, orderBy, sortDir);
 
@@ -143,7 +165,7 @@ public class EmployeeService implements IEmployeeService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
 
         // Usar Criteria API para una sola consulta con JOIN FETCH
-        Page<Employee> employeePage = employeeRepository.findAllActiveEmployeesWithRelations(pageable);
+        Page<Employee> employeePage = employeeRepository.findAllPageableEmployeesWithRelationsByState(pageable, state);
 
         // Mapear a DTOs (ahora sin consultas adicionales)
         List<EmployeeDto> employeeDtoList = employeePage.getContent().stream()
@@ -163,7 +185,7 @@ public class EmployeeService implements IEmployeeService {
     }
     // NUEVO: Método para filtrar por tipo de empleado usando ID
     @Override
-    public ResponseListPageableEmployee listEmployeePageableByType(int pageNumber, int pageSize, String orderBy, String sortDir, Long employeeTypeId) {
+    public ResponseListPageableEmployee listEmployeePageableByType(int pageNumber, int pageSize, String orderBy, String sortDir, Long employeeTypeId, boolean state) {
         log.info("Listing employees by type ID {} with parameters: pageNumber={}, pageSize={}, orderBy={}, sortDir={}",
                 employeeTypeId, pageNumber, pageSize, orderBy, sortDir);
 
@@ -173,7 +195,7 @@ public class EmployeeService implements IEmployeeService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
 
         // Usar Criteria API con filtro por tipo
-        Page<Employee> employeePage = employeeRepository.findActiveEmployeesByTypeWithRelations(pageable, employeeTypeId);
+        Page<Employee> employeePage = employeeRepository.findActiveEmployeesByTypeWithRelations(pageable, employeeTypeId, state);
 
         // Mapear a DTOs
         List<EmployeeDto> employeeDtoList = employeePage.getContent().stream()
@@ -485,14 +507,14 @@ public class EmployeeService implements IEmployeeService {
         }
     }
     private void validateEmployeeDataUpdated(CreateEmployeeRequest request, Employee employeeInBd){
-        if (request.getEmailAddress() != null && !request.getEmailAddress().isEmpty() && !request.getEmailAddress().equals(employeeInBd.getPerson().getEmailAddress())) {
+        if (request.getEmailAddress() != null && !request.getEmailAddress().isEmpty() && !request.getEmailAddress().toUpperCase().equals(employeeInBd.getPerson().getEmailAddress())) {
             Person person = personRepository.findByEmailAddress(request.getEmailAddress()).orElse(null);
             if (person != null ) {
                 log.error("Email address {} already exists", request.getEmailAddress());
                 ValidateUtil.requerido(null, UsersErrorEnum.EMAIL_ALREADY_EXISTS_WAR00011);
             }
         }
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty() && !request.getPhoneNumber().equals(employeeInBd.getPerson().getPhoneNumber())) {
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty() && !request.getPhoneNumber().toUpperCase().equals(employeeInBd.getPerson().getPhoneNumber())) {
             Person person1 = personRepository.findByPhoneNumber(request.getPhoneNumber()).orElse(null);
             if (person1 != null) {
                 log.error("Phone number {} already exists", request.getPhoneNumber());

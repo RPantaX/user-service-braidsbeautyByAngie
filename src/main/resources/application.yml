@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 0 # Set to 0 to let the system choose a random port
 
 spring:
   application:
