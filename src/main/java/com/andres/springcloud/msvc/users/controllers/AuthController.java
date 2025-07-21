@@ -3,7 +3,9 @@ package com.andres.springcloud.msvc.users.controllers;
 import com.andres.springcloud.msvc.users.dto.AuthRequest;
 import com.andres.springcloud.msvc.users.dto.TokenResponse;
 import com.andres.springcloud.msvc.users.dto.TokenValidationResponse;
+import com.andres.springcloud.msvc.users.entities.User;
 import com.andres.springcloud.msvc.users.services.AuthService;
+import com.andres.springcloud.msvc.users.services.IUserService;
 import com.andres.springcloud.msvc.users.services.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +28,8 @@ public class AuthController {
 
     @Autowired
     private JwtService jwtService;
-
+    @Autowired
+    private IUserService userService;
     @PostMapping("/token")
     public ResponseEntity<TokenResponse> getToken(@RequestBody AuthRequest authRequest) {
         Authentication authenticate = authenticationManager.authenticate(
@@ -41,7 +44,11 @@ public class AuthController {
             throw new RuntimeException("Invalid access");
         }
     }
-
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return userService.findById(id).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
     @GetMapping("/validate")
     public ResponseEntity<TokenValidationResponse> validateToken(@RequestParam("token") String token) {
         try {

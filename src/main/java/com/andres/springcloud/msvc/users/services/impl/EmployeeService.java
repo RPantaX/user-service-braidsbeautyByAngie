@@ -3,6 +3,7 @@ package com.andres.springcloud.msvc.users.services.impl;
 import com.andres.springcloud.msvc.users.dto.*;
 import com.andres.springcloud.msvc.users.dto.constants.Constants;
 import com.andres.springcloud.msvc.users.dto.constants.UsersErrorEnum;
+import com.andres.springcloud.msvc.users.dto.enums.EmployeeTypeEnum;
 import com.andres.springcloud.msvc.users.dto.request.CreateEmployeeRequest;
 import com.andres.springcloud.msvc.users.dto.request.ResponseListPageableEmployee;
 import com.andres.springcloud.msvc.users.entities.*;
@@ -24,6 +25,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -158,7 +161,160 @@ public class EmployeeService implements IEmployeeService {
                 .end(employeePage.isLast())
                 .build();
     }
+    // NUEVO: Método para filtrar por tipo de empleado usando ID
+    @Override
+    public ResponseListPageableEmployee listEmployeePageableByType(int pageNumber, int pageSize, String orderBy, String sortDir, Long employeeTypeId) {
+        log.info("Listing employees by type ID {} with parameters: pageNumber={}, pageSize={}, orderBy={}, sortDir={}",
+                employeeTypeId, pageNumber, pageSize, orderBy, sortDir);
 
+        // Crear Pageable con ordenamiento
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+                Sort.by(orderBy).ascending() : Sort.by(orderBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // Usar Criteria API con filtro por tipo
+        Page<Employee> employeePage = employeeRepository.findActiveEmployeesByTypeWithRelations(pageable, employeeTypeId);
+
+        // Mapear a DTOs
+        List<EmployeeDto> employeeDtoList = employeePage.getContent().stream()
+                .map(this::employeeEntityToDto)
+                .toList();
+
+        log.info("Retrieved {} employees of type {} from database in single query", employeeDtoList.size(), employeeTypeId);
+
+        return ResponseListPageableEmployee.builder()
+                .employeeDtoList(employeeDtoList)
+                .pageNumber(employeePage.getNumber())
+                .pageSize(employeePage.getSize())
+                .totalPages(employeePage.getTotalPages())
+                .totalElements(employeePage.getTotalElements())
+                .end(employeePage.isLast())
+                .build();
+    }
+
+    // NUEVO: Método para filtrar por tipo de empleado usando Enum
+    @Override
+    public ResponseListPageableEmployee listEmployeePageableByTypeEnum(int pageNumber, int pageSize, String orderBy, String sortDir, EmployeeTypeEnum employeeType) {
+        log.info("Listing employees by type {} with parameters: pageNumber={}, pageSize={}, orderBy={}, sortDir={}",
+                employeeType, pageNumber, pageSize, orderBy, sortDir);
+
+        // Crear Pageable con ordenamiento
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+                Sort.by(orderBy).ascending() : Sort.by(orderBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // Usar Criteria API con filtro por enum
+        Page<Employee> employeePage = employeeRepository.findActiveEmployeesByTypeWithRelations(pageable, employeeType);
+
+        // Mapear a DTOs
+        List<EmployeeDto> employeeDtoList = employeePage.getContent().stream()
+                .map(this::employeeEntityToDto)
+                .toList();
+
+        log.info("Retrieved {} employees of type {} from database in single query", employeeDtoList.size(), employeeType);
+
+        return ResponseListPageableEmployee.builder()
+                .employeeDtoList(employeeDtoList)
+                .pageNumber(employeePage.getNumber())
+                .pageSize(employeePage.getSize())
+                .totalPages(employeePage.getTotalPages())
+                .totalElements(employeePage.getTotalElements())
+                .end(employeePage.isLast())
+                .build();
+    }
+
+    // NUEVO: Método para filtrar por múltiples tipos
+    @Override
+    public ResponseListPageableEmployee listEmployeePageableByMultipleTypes(int pageNumber, int pageSize, String orderBy, String sortDir, Long... employeeTypeIds) {
+        log.info("Listing employees by types {} with parameters: pageNumber={}, pageSize={}, orderBy={}, sortDir={}",
+                Arrays.toString(employeeTypeIds), pageNumber, pageSize, orderBy, sortDir);
+
+        // Crear Pageable con ordenamiento
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+                Sort.by(orderBy).ascending() : Sort.by(orderBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // Usar Criteria API con filtro por múltiples tipos
+        Page<Employee> employeePage = employeeRepository.findActiveEmployeesByMultipleTypesWithRelations(pageable, employeeTypeIds);
+
+        // Mapear a DTOs
+        List<EmployeeDto> employeeDtoList = employeePage.getContent().stream()
+                .map(this::employeeEntityToDto)
+                .toList();
+
+        log.info("Retrieved {} employees of types {} from database in single query", employeeDtoList.size(), Arrays.toString(employeeTypeIds));
+
+        return ResponseListPageableEmployee.builder()
+                .employeeDtoList(employeeDtoList)
+                .pageNumber(employeePage.getNumber())
+                .pageSize(employeePage.getSize())
+                .totalPages(employeePage.getTotalPages())
+                .totalElements(employeePage.getTotalElements())
+                .end(employeePage.isLast())
+                .build();
+    }
+    // NUEVO: Método para obtener empleados por lista de IDs (sin paginación)
+    @Override
+    public List<EmployeeDto> getEmployeesByIds(List<Long> employeeIds) {
+        log.info("Getting employees by IDs: {}", employeeIds);
+
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            log.warn("Employee IDs list is null or empty, returning empty list");
+            return new ArrayList<>();
+        }
+
+        // Usar Criteria API para obtener empleados por IDs con todas las relaciones
+        List<Employee> employees = employeeRepository.findEmployeesByIdsWithRelations(employeeIds);
+
+        // Mapear a DTOs
+        List<EmployeeDto> employeeDtoList = employees.stream()
+                .map(this::employeeEntityToDto)
+                .toList();
+
+        log.info("Retrieved {} employees for {} requested IDs", employeeDtoList.size(), employeeIds.size());
+
+        return employeeDtoList;
+    }
+
+    // NUEVO: Método para obtener empleados activos por lista de IDs (sin paginación)
+    @Override
+    public List<EmployeeDto> getActiveEmployeesByIds(List<Long> employeeIds) {
+        log.info("Getting active employees by IDs: {}", employeeIds);
+
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            log.warn("Employee IDs list is null or empty, returning empty list");
+            return new ArrayList<>();
+        }
+
+        // Usar Criteria API para obtener empleados activos por IDs con todas las relaciones
+        List<Employee> employees = employeeRepository.findActiveEmployeesByIdsWithRelations(employeeIds);
+
+        // Mapear a DTOs
+        List<EmployeeDto> employeeDtoList = employees.stream()
+                .map(this::employeeEntityToDto)
+                .toList();
+
+        log.info("Retrieved {} active employees for {} requested IDs", employeeDtoList.size(), employeeIds.size());
+
+        return employeeDtoList;
+    }
+    // NUEVO: Método para obtener TODOS los empleados sin filtros ni paginación
+    @Override
+    public List<EmployeeDto> getAllEmployees() {
+        log.info("Getting ALL employees without any filters");
+
+        // Usar Criteria API para obtener TODOS los empleados con todas las relaciones
+        List<Employee> employees = employeeRepository.findAllEmployeesWithRelations();
+
+        // Mapear a DTOs
+        List<EmployeeDto> employeeDtoList = employees.stream()
+                .map(this::employeeEntityToDto)
+                .toList();
+
+        log.info("Retrieved ALL {} employees from database in single query", employeeDtoList.size());
+
+        return employeeDtoList;
+    }
     // Método de mapeo optimizado
     private EmployeeDto employeeEntityToDto(Employee employee) {
         EmployeeTypeDto employeeTypeDto = null;
