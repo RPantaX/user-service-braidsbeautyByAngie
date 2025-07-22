@@ -1,8 +1,10 @@
 package com.andres.springcloud.msvc.users.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.andres.springcloud.msvc.users.dto.UserRequest;
+import com.andres.springcloud.msvc.users.entities.Role;
 import com.andres.springcloud.msvc.users.entities.User;
 
 public interface IUserService {
@@ -18,4 +20,5 @@ public interface IUserService {
 
     void delete(Long id);
     Boolean existByUserId(String userId);
+    List<Role> getAllRoles();
 }

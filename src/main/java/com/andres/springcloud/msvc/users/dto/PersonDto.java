@@ -29,7 +29,7 @@ public class PersonDto {
     // Objetos anidados para respuestas completas
     private AddressDto address;
     private DocumentTypeDto documentType;
-
+    private String documentNumber;
     // Campo calculado para nombre completo
     public String getFullName() {
         return name + " " + lastName;

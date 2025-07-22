@@ -27,6 +27,15 @@ public enum UsersErrorEnum implements GenericError {
     //CustomerType
     CUSTOMER_TYPE_ALREADY_EXISTS_ERCT00001("ERCT00001", "Customer Type Already Exists", "The customer type with the given name already exists.", TypeException.E),
     CUSTOMER_TYPE_NOT_FOUND_ERCT00002("ERCT00002", "Customer Type Not Found", "The customer type with the given ID does not exist.", TypeException.E),
+
+    //USERS
+    USER_NOT_FOUND_US00001("US00001", "User Not Found", "The user with the given ID does not exist.", TypeException.E),
+    USER_ALREADY_EXISTS_US00002("US00002", "User Already Exists", "The user with the given username or email already exists.", TypeException.E),
+    USER_INVALID_DATA_US00003("US00003", "Invalid User Data", "The provided user data is invalid or incomplete.", TypeException.E),
+    USERNAME_ALREADY_EXISTS_US00004("US00004", "Username Already Exists", "The username is already taken by another user.", TypeException.E),
+    USER_EMAIL_ALREADY_EXISTS_US00005("US00005", "Email Already Exists", "The email address is already associated with another user.", TypeException.E),
+    USER_PHONE_ALREADY_EXISTS_US00006("US00006", "Phone Already Exists", "The phone number is already associated with another user.", TypeException.E),
+
     //WARNING
     EMAIL_ALREADY_EXISTS_WAR00011("WAR00011", "Email Already Exists", "The email address is already associated with another user.", TypeException.W),
     PHONE_ALREADY_EXISTS_WAR00012("WAR00012", "Phone Already Exists", "The phone number is already associated with another user.", TypeException.W),

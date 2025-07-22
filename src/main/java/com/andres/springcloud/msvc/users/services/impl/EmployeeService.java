@@ -378,6 +378,7 @@ public class EmployeeService implements IEmployeeService {
                     .lastName(person.getLastName())
                     .emailAddress(person.getEmailAddress())
                     .phoneNumber(person.getPhoneNumber())
+                    .documentNumber(person.getDocumentNumber())
                     .address(addressDto)
                     .documentType(documentTypeDto)
                     .build();
@@ -431,6 +432,7 @@ public class EmployeeService implements IEmployeeService {
                 .emailAddress(createEmployeeRequest.getEmailAddress().toUpperCase())
                 .phoneNumber(createEmployeeRequest.getPhoneNumber())
                 .address(address)
+                .documentNumber(createEmployeeRequest.getDocumentNumber().toUpperCase())
                 .documentType(documentType)
                 .state(Constants.STATUS_ACTIVE)
                 .createdAt(Constants.getTimestamp())
@@ -606,6 +608,7 @@ public class EmployeeService implements IEmployeeService {
                 .emailAddress(employee.getPerson() != null ? employee.getPerson().getEmailAddress() : null)
                 .phoneNumber(employee.getPerson() != null ? employee.getPerson().getPhoneNumber() : null)
                 .address(addressDto)
+                .documentNumber(employee.getPerson() != null ? employee.getPerson().getDocumentNumber() : null)
                 .documentType(documentType)
                 .build();
         return EmployeeDto.builder()
@@ -615,6 +618,12 @@ public class EmployeeService implements IEmployeeService {
                 .userId(employee.getUser() != null ? employee.getUser().getId() : null)
                 .personId(employee.getPerson() != null ? employee.getPerson().getId() : null)
                 .employeeImage(employee.getEmployeeImage())
+                .user(employee.getUser() != null ? UserDto.builder()
+                        .id(employee.getUser().getId())
+                        .username(employee.getUser().getUsername())
+                        .email(employee.getUser().getEmail())
+                        .enabled(employee.getUser().getEnabled())
+                        .build() : null)
                 .build();
     }
 }

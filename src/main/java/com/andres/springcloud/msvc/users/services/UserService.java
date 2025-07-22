@@ -46,6 +46,12 @@ public class UserService implements IUserService{
     
     @Transactional(readOnly = true)
     public Optional<User> findByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElse(null);
+        if (user == null) {
+            log.error("User with username {} not found", username);
+            ValidateUtil.requerido(null, UsersErrorEnum.USER_NOT_FOUND_US00001);
+        }
         return userRepository.findByUsername(username);
     }
     
@@ -58,10 +64,10 @@ public class UserService implements IUserService{
     public User save(UserRequest userRequest) {
         //validate if user exists by username or email
         if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("User already exists");
+            ValidateUtil.evaluar(false, UsersErrorEnum.USERNAME_ALREADY_EXISTS_US00004);
         }
         if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            ValidateUtil.evaluar(false, UsersErrorEnum.USER_EMAIL_ALREADY_EXISTS_US00005);
         }
         User user = new User();
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -113,6 +119,12 @@ public class UserService implements IUserService{
     public Boolean existByUserId(String keycloakId) {
         return userRepository.existsByKeycloakId(keycloakId);
     }
+
+    @Override
+    public List<Role> getAllRoles() {
+        return (List<Role>) roleRepository.findAll();
+    }
+
     @Transactional
     public void delete(Long id) {
         userRepository.deleteById(id);

@@ -1,6 +1,7 @@
 package com.andres.springcloud.msvc.users.controllers;
 
 import com.andres.springcloud.msvc.users.dto.UserRequest;
+import com.braidsbeautybyangie.sagapatternspringboot.aggregates.aggregates.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,39 +18,45 @@ public class UserController {
     private IUserService userService;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody UserRequest user) {
-        return new ResponseEntity<>(userService.save(user), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse> createUser(@RequestBody UserRequest user) {
+        return new ResponseEntity<>(ApiResponse.create("user created",userService.save(user)), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@RequestBody User user, @PathVariable Long id) {
-        return userService.update(user, id).map(userUpdated -> ResponseEntity.status(HttpStatus.CREATED).body(userUpdated))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse> updateUser(@RequestBody User user, @PathVariable Long id) {
+        return new ResponseEntity<>(ApiResponse.create("user updated", userService.update(user, id)), HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userService.findById(id).map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok("User retrieved successfully",
+                userService.findById(id)));
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
-        return userService.findByUsername(username).map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse> getUserByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(ApiResponse.ok("User retrieved successfully",
+                userService.findByUsername(username)));
     }
 
     @GetMapping
-    public ResponseEntity<Iterable<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAll());
+    public ResponseEntity<ApiResponse> getAllUsers() {
+        return ResponseEntity.ok(ApiResponse.ok("List of users retrieved successfully",
+                userService.findAll()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> deleteUser(@PathVariable Long id) {
         userService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok("User deleted successfully", null));
     }
     @GetMapping("/{userId}/validate")
-    public ResponseEntity<Boolean> validateUser(@PathVariable String userId){
-        return ResponseEntity.ok(userService.existByUserId(userId));
+    public ResponseEntity<ApiResponse> validateUser(@PathVariable String userId){
+        return ResponseEntity.ok(ApiResponse.ok("User validation result",
+                userService.existByUserId(userId)));
+    }
+    @GetMapping("/roles")
+    public ResponseEntity<ApiResponse> getAllRoles() {
+        return ResponseEntity.ok(ApiResponse.ok("List of roles retrieved successfully",
+                userService.getAllRoles()));
     }
 }

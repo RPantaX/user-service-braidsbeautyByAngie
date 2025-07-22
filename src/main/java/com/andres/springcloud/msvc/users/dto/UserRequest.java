@@ -13,6 +13,7 @@ public class UserRequest {
     @NotBlank
     private String username;
     private String document;
+    private Long documentId;
     @NotBlank
     private String password;
     @NotBlank
