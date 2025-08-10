@@ -1,35 +1,35 @@
-server:
-  port: 0 # Set to 0 to let the system choose a random port
-
-spring:
-  application:
-    name: user-service
-  datasource:
-    url: jdbc:mysql://localhost:3308/db_users
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-  instance:
-    hostname: user-service
-    prefer-ip-address: true
-
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,gateway
-  endpoint:
-    health:
-      show-details: always
+#server:
+#  port: 0 # Set to 0 to let the system choose a random port
+#
+#spring:
+#  application:
+#    name: user-service
+#  datasource:
+#    url: jdbc:mysql://localhost:3308/db_users
+#    username: root
+#    password: 123456
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#  jpa:
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: update
+#    database-platform: org.hibernate.dialect.MySQL8Dialect
+#
+#eureka:
+#  client:
+#    enabled: true
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka
+#  instance:
+#    hostname: user-service
+#    prefer-ip-address: true
+#
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,gateway
+#  endpoint:
+#    health:
+#      show-details: always
